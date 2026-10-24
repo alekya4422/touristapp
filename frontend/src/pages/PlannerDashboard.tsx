@@ -952,7 +952,7 @@ export const PlannerDashboard: React.FC = () => {
          ======================================================== */}
       {subscribingPlan && (
         <div className="modal-overlay" onClick={() => setSubscribingPlan(null)}>
-          <div className="modal-container" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-container" style={{ maxWidth: '500px' }} onClick={(e: any) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Confirm Plan Upgrade</h3>
               <button className="modal-close-btn" onClick={() => setSubscribingPlan(null)}>&times;</button>
@@ -975,7 +975,7 @@ export const PlannerDashboard: React.FC = () => {
                 <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '0.5rem' }}>
                   Plan Benefits Included:
                 </div>
-                {subscribingPlan.features.map((f, i) => (
+                {subscribingPlan.features.map((f: any, i: number) => (
                   <div key={i} style={{ fontSize: '0.82rem', color: '#475569', display: 'flex', gap: '0.5rem', marginBottom: '4px' }}>
                     <CheckCircle2 size={14} color="#0d9488" /> {f}
                   </div>
