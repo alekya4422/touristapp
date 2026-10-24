@@ -46,8 +46,25 @@ app.use('/api/*', (req: Request, res: Response) => {
 });
 
 // Serve frontend static files and client-side routing fallback in production
-const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
-if (fs.existsSync(frontendDistPath)) {
+const possibleDistPaths = [
+  path.resolve(__dirname, '../../frontend/dist'),
+  path.resolve(process.cwd(), 'frontend/dist'),
+  path.resolve(process.cwd(), '../frontend/dist'),
+  path.resolve(__dirname, '../frontend/dist'),
+  path.resolve(__dirname, '../../dist')
+];
+
+let frontendDistPath = '';
+for (const cand of possibleDistPaths) {
+  if (fs.existsSync(cand) && fs.existsSync(path.join(cand, 'index.html'))) {
+    frontendDistPath = cand;
+    break;
+  }
+}
+
+console.log(`[Frontend Static] Resolved directory: ${frontendDistPath || 'NOT FOUND'}`);
+
+if (frontendDistPath) {
   app.use(express.static(frontendDistPath));
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith('/api')) {
@@ -58,6 +75,20 @@ if (fs.existsSync(frontendDistPath)) {
       return res.sendFile(indexHtml);
     }
     next();
+  });
+} else {
+  app.get('/', (req: Request, res: Response) => {
+    res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head><title>Tourist Trip Planner API</title></head>
+        <body style="font-family: sans-serif; padding: 2rem; text-align: center; line-height: 1.6;">
+          <h2>🚀 Tourist App Backend API is Running!</h2>
+          <p>Health check endpoint: <a href="/api/health">/api/health</a></p>
+          <p style="color: #666;">Note: Frontend build was not detected at startup. Run <code>npm run build</code> to bundle the frontend.</p>
+        </body>
+      </html>
+    `);
   });
 }
 
@@ -74,10 +105,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Start Express server and initialize DB connection
 async function startServer() {
   await initDb();
-  app.listen(PORT, () => {
+  const portNumber = typeof PORT === 'string' ? parseInt(PORT, 10) : Number(PORT);
+  app.listen(portNumber, '0.0.0.0', () => {
     console.log(`=================================================`);
-    console.log(`🚀 Tourist Trip Planner API running on port ${PORT}`);
-    console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+    console.log(`🚀 Tourist Trip Planner API running on port ${portNumber} (0.0.0.0)`);
+    console.log(`📡 Health Check: http://0.0.0.0:${portNumber}/api/health`);
     console.log(`💾 DB Engine: ${isUsingMySql() ? 'MySQL Server' : 'In-Memory Seed Mode'}`);
     console.log(`=================================================`);
   });
